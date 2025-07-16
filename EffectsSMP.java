@@ -15,9 +15,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -43,6 +46,7 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         loadAllowedEffects();
         initDatabase();
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new DragonEggEffectAmplifier(this), this);
         getCommand("smp").setExecutor(this);
         getCommand("smp").setTabCompleter(this);
     }
@@ -84,7 +88,7 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         }
     }
 
-    private void applyEffect(Player player) {
+    public void applyEffect(Player player) {
         try {
             PreparedStatement ps = connection.prepareStatement("SELECT effect, amplifier FROM permanent_effects WHERE uuid = ?");
             ps.setString(1, player.getUniqueId().toString());
@@ -102,7 +106,7 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         }
     }
 
-    private void setEffect(UUID uuid, PotionEffectType type, int amp) {
+    public void setEffect(UUID uuid, PotionEffectType type, int amp) {
         try {
             removeEffect(uuid);
             PreparedStatement ps = connection.prepareStatement("INSERT INTO permanent_effects (uuid, effect, amplifier) VALUES (?, ?, ?)");
@@ -116,7 +120,7 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         }
     }
 
-    private void removeEffect(UUID uuid) {
+    public void removeEffect(UUID uuid) {
         try {
             PreparedStatement del = connection.prepareStatement("DELETE FROM permanent_effects WHERE uuid = ?");
             del.setString(1, uuid.toString());
@@ -364,11 +368,35 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         player.openInventory(inv);
     }
 
+    private boolean isNetheriteArmor(ItemStack item) {
+        if (item == null) return false;
+        Material type = item.getType();
+        return type == Material.NETHERITE_HELMET ||
+                type == Material.NETHERITE_CHESTPLATE ||
+                type == Material.NETHERITE_LEGGINGS ||
+                type == Material.NETHERITE_BOOTS;
+    }
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         HumanEntity clicker = event.getWhoClicked();
         if (!(clicker instanceof Player player)) return;
-        if (!event.getView().getTitle().equals(ChatColor.DARK_PURPLE + "Permanent Effects")) return;
+        if (!event.getView().getTitle().equals(ChatColor.DARK_PURPLE + "Permanent Effects")) {
+            if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
+                ItemStack newItem = event.getCursor();
+                if (isNetheriteArmor(newItem)) {
+                    event.setCancelled(true);
+                    ((Player) event.getWhoClicked()).sendMessage("§cNetherite armor is not allowed!");
+                }
+            }
+
+            ItemStack currentItem = event.getCurrentItem();
+            if (isNetheriteArmor(currentItem) && event.getSlotType() == InventoryType.SlotType.CONTAINER && event.isShiftClick()) {
+                event.setCancelled(true);
+                ((Player) event.getWhoClicked()).sendMessage("§cNetherite armor is not allowed!");
+            }
+            return;
+        };
 
         event.setCancelled(true);
 
@@ -392,6 +420,15 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         }
     }
 
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        ItemStack item = event.getItem();
+        if (isNetheriteArmor(item) && event.getHand() == EquipmentSlot.HAND) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage("§cYou can't equip Netherite armor!");
+        }
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
@@ -401,5 +438,9 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
             return Arrays.stream(PotionEffectType.values()).map(PotionEffectType::getName).collect(Collectors.toList());
         }
         return null;
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 }
