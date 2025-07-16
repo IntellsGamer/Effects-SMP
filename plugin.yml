@@ -1,0 +1,21 @@
+name: Effects-SMP
+version: '1.0'
+main: com.idebugger.effectsSMP.EffectsSMP
+api-version: 1.16
+authors: [ .idebugger ]
+description: "Support Discord: .idebugger (1135924732936585357)"
+
+commands:
+  smp:
+    description: Manage permanent effects
+    usage: /smp <set|remove|random|randomall|autorandom|list|gui> ...
+    aliases: [effects]
+    permission: effects.use
+
+permissions:
+  effects.use:
+    description: Allows usage of Effects SMP normal commands
+    default: true
+  effects.admin:
+    description: Allows usage of Effects SMP admin commands
+    default: op
