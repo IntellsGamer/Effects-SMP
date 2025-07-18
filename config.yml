@@ -1,7 +1,0 @@
-allowed-effects:
-  - SPEED
-  - RESISTANCE
-  - STRENGTH
-  - HASTE
-  - REGENERATION
-  # ...
