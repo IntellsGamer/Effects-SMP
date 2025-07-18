@@ -48,6 +48,7 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new DragonEggEffectAmplifier(this), this);
         getServer().getPluginManager().registerEvents(new OneMacePerServer(this), this);
+        getServer().getPluginManager().registerEvents(new RerollBeacon(this), this);
         getCommand("smp").setExecutor(this);
         getCommand("smp").setTabCompleter(this);
     }
@@ -144,7 +145,7 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         }
     }
 
-    private void giveRandomEffect(Player player) {
+    public void giveRandomEffect(Player player) {
         if (allowedEffects.isEmpty()) return;
 
         player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
