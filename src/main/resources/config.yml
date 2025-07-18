@@ -17,3 +17,12 @@ allowed-effects:
   - CONDUIT_POWER
   - LUCK
   # ...
+
+# Controls whether players can craft the mace
+# In case this is your first time working with this plugin, YOU SHOULD NOT CHANGE THIS AT ALL
+# THis will automatically be set to false if a player crafts the mace
+mace: true
+
+# Allows or disables automated crafting machines from crafting the mace
+# Recommended to leave this as true
+AllowCrafter: true
