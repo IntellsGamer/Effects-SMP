@@ -1,5 +1,5 @@
 name: Effects-SMP
-version: '1.2'
+version: '1.3'
 main: com.idebugger.effectsSMP.EffectsSMP
 api-version: 1.21
 authors: [ .idebugger ]
