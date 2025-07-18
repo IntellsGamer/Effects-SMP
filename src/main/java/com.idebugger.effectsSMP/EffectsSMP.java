@@ -75,7 +75,18 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + getDataFolder() + "/effects.db");
             Statement statement = connection.createStatement();
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS permanent_effects (uuid TEXT PRIMARY KEY, effect TEXT, amplifier INTEGER)");
+
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS permanent_effects (" +
+                    "uuid TEXT PRIMARY KEY, " +
+                    "effect TEXT, " +
+                    "amplifier INTEGER, " +
+                    "egg_owner BOOLEAN DEFAULT 0)");
+
+            ResultSet columns = connection.getMetaData().getColumns(null, null, "permanent_effects", "egg_owner");
+            if (!columns.next()) {
+                statement.executeUpdate("ALTER TABLE permanent_effects ADD COLUMN egg_owner BOOLEAN DEFAULT 0");
+            }
+
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS autorandom_global (enabled INTEGER DEFAULT 0)");
             ResultSet rs = statement.executeQuery("SELECT enabled FROM autorandom_global");
             if (rs.next()) {
@@ -83,6 +94,7 @@ public class EffectsSMP extends JavaPlugin implements Listener, CommandExecutor,
             } else {
                 statement.executeUpdate("INSERT INTO autorandom_global (enabled) VALUES (0)");
             }
+
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
